@@ -1,0 +1,22 @@
+query: |
+  SELECT * FROM `tcp_source` INTO Void()
+
+sinks: []
+
+logical:
+  - name: tcp_source
+    schema:
+      - name: ts
+        type: UINT64
+physical:
+  - logical: tcp_source
+    type: TCP
+    parser_config:
+      type: CSV
+      tupleDelimiter: "\n"
+      fieldDelimiter: ","
+    source_config:
+      socket_host: 172.18.0.1
+      socket_port: 5000
+      connect_timeout_seconds: 7
+      flush_interval_ms: 1000

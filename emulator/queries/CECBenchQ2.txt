@@ -1,0 +1,8 @@
+Query::from("bid")
+.map(Attribute("JoinKey") = 1)
+.joinWith(Query::from("auction").map(Attribute("JoinKey") = 1))
+.where(Attribute("JoinKey") == Attribute("JoinKey"))
+
+.window(TumblingWindow::of(EventTime(Attribute("timestamp")), Seconds(1)))
+
+.sink(MQTTSinkDescriptor::create("ws://172.17.0.1:19001", "q1-results"));

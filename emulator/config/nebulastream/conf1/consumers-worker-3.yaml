@@ -1,0 +1,26 @@
+# Logging configuration. Valid options are: LOG_ERROR, LOG_WARNING, LOG_INFO, LOG_DEBUG, LOG_TRACE
+logLevel: LOG_ERROR
+
+# Hostname of the coordinator, to which the worker should register upon startup.
+# Corresponds to the service name in docker-compose.yml.
+coordinatorHost: 10.1.1.1
+
+# Hostname under which this worker registers with the coordinator. Corresponds to the service name in docker-compose.yml.
+localWorkerHost: 10.1.1.5
+
+# Physical source configuration
+physicalSources:
+  - logicalSourceName: auction
+    physicalSourceName: auction
+    type: MQTT_SOURCE
+    configuration:
+      url: ws://172.18.0.1:9001
+      topic: auction
+  - logicalSourceName: bid
+    physicalSourceName: bid
+    type: MQTT_SOURCE
+    configuration:
+      url: ws://172.18.0.1:9001
+      topic: bid
+
+workerId: 2

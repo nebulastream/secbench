@@ -1,0 +1,74 @@
+query: |
+  SELECT
+    total_injected,
+    total_absorbed,
+    total_injected - total_absorbed AS leakage_gap
+  FROM (
+    SELECT
+      SUM(CASE WHEN node_type = UINT8(1) THEN demand_value ELSE FLOAT32(0.0) END) AS total_injected,
+      SUM(CASE WHEN node_type = UINT8(0) THEN demand_value ELSE FLOAT32(0.0) END) AS total_absorbed
+    FROM WATER_METER_READINGS
+    WHERE demand_value > FLOAT32(0.0)
+    WINDOW TUMBLING(ts, SIZE 30 SEC)
+  )
+  WHERE total_injected != total_absorbed
+  INTO LEAKAGE_SINK
+
+sinks:
+  - name: LEAKAGE_SINK
+    host: 10.1.1.1:8080
+    parser_config: {}
+    schema:
+      - name: total_injected
+        type: FLOAT32
+      - name: total_absorbed
+        type: FLOAT32
+      - name: leakage_gap
+        type: FLOAT32
+    type: Print
+    config:
+      output_format: CSV
+
+logical:
+  - name: WATER_METER_READINGS
+    schema:
+      - name: node_type
+        type: UINT8
+      - name: demand_value
+        type: FLOAT32
+      - name: ts
+        type: UINT64
+
+physical:
+  - logical: WATER_METER_READINGS
+    type: TCP
+    host: 10.1.1.1:8080
+    parser_config:
+      type: CSV
+    source_config:
+      socket_domain: AF_INET
+      socket_type: SOCK_STREAM
+      tuple_delimiter: ","
+      flush_interval_ms: "0"
+      socket_buffer_size: "1024"
+      connect_timeout_seconds: "10"
+      socket_host: "178.17.0.2"
+      socket_port: "9999"
+
+workers:
+  - host: 10.1.1.1:8080
+    data: 10.1.1.1:9090
+    max_operators: 10000
+
+  - host: 10.1.1.2:8080
+    data: 10.1.1.2:9090
+    max_operators: 10000
+    downstream:
+      - 10.1.1.1:8080
+
+  - host: 10.1.1.3:8080
+    data: 10.1.1.3:9090
+    max_operators: 10000
+    downstream:
+      - 10.1.1.2:8080
+

@@ -1,0 +1,3 @@
+g++ -std=c++20 -I./asio-1.30.2/include -DASIO_STANDALONE datagen2.cpp -o datagen2 -lpthread -lyaml-cpp
+
+g++ -std=c++20 -I./asio-1.30.2/include -I./include/mosquitto-2.0.21/include -DASIO_STANDALONE datagen5.cpp -o datagen2 -lpthread -lyaml-cpp -L/include/mosquitto-2.0.21/lib -lmosquitto

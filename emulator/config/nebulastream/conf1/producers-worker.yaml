@@ -1,0 +1,49 @@
+# Logging configuration. Valid options are: LOG_ERROR, LOG_WARNING, LOG_INFO, LOG_DEBUG, LOG_TRACE
+logLevel: LOG_ERROR
+
+# Hostname of the coordinator, to which the worker should register upon startup.
+# Corresponds to the service name in docker-compose.yml.
+coordinatorHost: 10.1.1.1
+#coordinatorPort: 1200
+#rpcPort: 1216
+#dataPort: 1416
+
+# Hostname under which this worker registers with the coordinator. Corresponds to the service name in docker-compose.yml.
+localWorkerHost: 10.1.1.2
+
+# Physical source configuration
+physicalSources:
+  - logicalSourceName: bid
+    physicalSourceName: bid
+    type: MQTT_SOURCE
+    configuration:
+      url: ws://192.168.0.1:9001
+      #url: ws://192.168.0.1:9001
+      topic: bid
+      inputFormat: CSV
+  - logicalSourceName: auction
+    physicalSourceName: auction
+    type: MQTT_SOURCE
+    configuration:
+      url: ws://192.168.0.1:9001
+      #url: ws://192.168.0.1:9001
+      topic: auction
+      inputFormat: CSV
+  - logicalSourceName: powerReadings
+    physicalSourceName: powerReadings
+    type: MQTT_SOURCE
+    configuration:
+      url: ws://192.168.0.1:9001
+      #url: ws://172.17.0.1:9001
+      topic: powerReadings
+      inputFormat: CSV
+  - logicalSourceName: waterMeterReadings
+    physicalSourceName: waterMeterReadings
+    type: MQTT_SOURCE
+    configuration:
+      url: ws://192.168.0.1:9001
+      #url: ws://172.17.0.1:9001
+      topic: waterMeterReadings
+      inputFormat: CSV
+
+workerId: 1

@@ -1,0 +1,2 @@
+[console_scripts]
+mn = mininet.mn:main

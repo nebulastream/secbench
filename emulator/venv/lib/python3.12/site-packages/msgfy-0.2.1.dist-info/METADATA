@@ -1,0 +1,177 @@
+Metadata-Version: 2.1
+Name: msgfy
+Version: 0.2.1
+Summary: msgfy is a Python library for convert Exception instance to a human-readable error message.
+Home-page: https://github.com/thombashi/msgfy
+Author: Tsuyoshi Hombashi
+Author-email: tsuyoshi.hombashi@gmail.com
+License: MIT License
+Project-URL: Source, https://github.com/thombashi/msgfy
+Project-URL: Tracker, https://github.com/thombashi/msgfy/issues
+Keywords: error
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Information Technology
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Text Processing
+Classifier: Typing :: Typed
+Requires-Python: >=3.7
+Description-Content-Type: text/x-rst
+License-File: LICENSE
+Provides-Extra: test
+Requires-Dist: pytest >=6.0.1 ; extra == 'test'
+Requires-Dist: pytest-md-report >=0.4.1 ; extra == 'test'
+
+.. contents:: **msgfy**
+   :backlinks: top
+   :depth: 2
+
+
+Summary
+====================================
+msgfy is a Python library for convert Exception instance to a human-readable error message.
+
+
+.. image:: https://badge.fury.io/py/msgfy.svg
+    :target: https://badge.fury.io/py/msgfy
+    :alt: PyPI package version
+
+.. image:: https://img.shields.io/pypi/pyversions/msgfy.svg
+    :target: https://pypi.org/project/msgfy
+    :alt: Supported Python versions
+
+.. image:: https://github.com/thombashi/msgfy/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/thombashi/msgfy/actions/workflows/ci.yml
+    :alt: CI status of Linux/macOS/Windows
+
+.. image:: https://coveralls.io/repos/github/thombashi/msgfy/badge.svg?branch=master
+    :target: https://coveralls.io/github/thombashi/msgfy?branch=master
+    :alt: Test coverage
+
+.. image:: https://github.com/thombashi/msgfy/actions/workflows/github-code-scanning/codeql/badge.svg
+    :target: https://github.com/thombashi/msgfy/actions/workflows/github-code-scanning/codeql
+    :alt: CodeQL
+
+
+Usage
+====================================
+
+Convert from Exception instance to an error message
+------------------------------------------------------------------------
+:Sample Code:
+    .. code:: python
+
+        import msgfy
+
+        def error_message_example():
+            try:
+                raise ValueError("example message")
+            except ValueError as e:
+                print(msgfy.to_error_message(e))
+
+        error_message_example()
+
+:Output:
+    ::
+
+        ValueError: example error message
+
+Specify message format
+------------------------------------
+:Sample Code:
+    .. code:: python
+
+        import msgfy
+
+        def error_message_format_example():
+            try:
+                raise ValueError("example error message")
+            except ValueError as e:
+                print(msgfy.to_error_message(e, "{exception} {func_name}: {error_msg}"))
+
+        error_message_format_example()
+
+:Output:
+    ::
+
+        ValueError error_message_format_example: example error message
+
+
+Convert from Exception instance to a debug message
+------------------------------------------------------------------------
+:Sample Code:
+    .. code:: python
+
+        import msgfy
+
+        def debug_message_example():
+            try:
+                raise ValueError("example debug message")
+            except ValueError as e:
+                print(msgfy.to_debug_message(e))
+
+        debug_message_example()
+
+:Output:
+    ::
+
+        ValueError <ipython-input-4-bdd569af197b>(5) debug_message_example: example debug message
+
+
+Available keywords for message formats
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++---------------------+-----------------------------------------------+
+| Keyword             | Replaced to                                   |
++=====================+===============================================+
+| ``"{exception}"``   | Exception class name                          |
++---------------------+-----------------------------------------------+
+| ``"{file_name}"``   | File name that exception raised               |
++---------------------+-----------------------------------------------+
+| ``"{line_no}"``     | Line number where the exception raised        |
++---------------------+-----------------------------------------------+
+| ``"{func_name}"``   | Function name that exception raised           |
++---------------------+-----------------------------------------------+
+| ``"{error_msg}"``   | Message that passed to the exception instance |
++---------------------+-----------------------------------------------+
+
+
+Installation
+====================================
+
+Install from PyPI
+------------------------------
+::
+
+    pip install msgfy
+
+Install from PPA (for Ubuntu)
+------------------------------
+::
+
+    sudo add-apt-repository ppa:thombashi/ppa
+    sudo apt update
+    sudo apt install python3-msgfy
+
+
+Dependencies
+====================================
+Python 3.7+
+No external dependencies.
+
+Test dependencies
+-----------------
+- `pytest <https://docs.pytest.org/en/latest/>`__
+- `tox <https://testrun.org/tox/latest/>`__

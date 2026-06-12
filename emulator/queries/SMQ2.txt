@@ -1,0 +1,22 @@
+Query::from("waterMeterReadings")
+
+//.project(Attribute("house_id"),Attribute("timestamp"),Attribute("value"))
+
+.window(TumblingWindow::of(EventTime(Attribute("timestamp")), Seconds(6)))
+.byKey(Attribute("node_type"))
+.apply(Sum(Attribute("demand_value"))->as(Attribute("demand_sum")))
+
+//.filter(Attribute("total") > 0)
+
+.sink(MQTTSinkDescriptor::create("ws://192.168.0.1:9001", "q1-results"));
+
+
+
+
+SELECT node_type, SUM(demand_value) as demand_sum,
+  SUM(CASE WHEN node_type = 1 THEN demand_value ELSE 0 END) AS total_injected,
+  SUM(CASE WHEN node_type = 0 THEN demand_value ELSE 0 END) AS total_absorbed
+FROM waterMeterReadings
+[RANGE 30 SECONDS]
+WHERE total_injected <> total_absorbed
+GROUP BY node_type

@@ -1,0 +1,42 @@
+query: |
+  SELECT * FROM SENSOR_DATA INTO PRINT_SINK
+
+sinks:
+  - name: PRINT_SINK
+    type: Print
+    schema:
+      - name: SENSOR_DATA$id
+        type: UINT64
+      - name: SENSOR_DATA$name
+        type: VARSIZED
+      - name: SENSOR_DATA$value
+        type: FLOAT64
+      - name: SENSOR_DATA$timestamp
+        type: UINT64
+    config:
+      input_format: CSV
+
+logical:
+  - name: SENSOR_DATA
+    schema:
+      - name: id
+        type: UINT64
+      - name: name
+        type: VARSIZED
+      - name: value
+        type: FLOAT64
+      - name: timestamp
+        type: UINT64
+
+physical:
+  - logical: SENSOR_DATA
+    parser_config:
+      type: CSV
+      fieldDelimiter: ","
+    type: TCP
+    source_config:
+      socket_host: "172.17.0.2"
+      socket_port: "9999"
+      flush_interval_ms: "100"
+      connect_timeout_ms: "10000"
+      auto_reconnect: "true"

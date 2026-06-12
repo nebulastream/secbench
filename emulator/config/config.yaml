@@ -1,0 +1,22 @@
+heterogeneity:
+  - n1
+    cpu: 4 # no of cores
+    memory: 8g
+    storage: 16g
+  - n2
+    cpu: 2
+    memory: 8g
+    storage: 16g
+  - n3
+    cpu: 2
+    memory: 8g
+    storage: 16g
+
+network:
+  topology: "custom"
+    - n1:n2
+      - latency: 15 # ms
+      - bandwidth: 10 # Mbps
+    - n2:n3
+      - latency: 15 # ms
+      - bandwidth: 200 # Mbps

@@ -1,0 +1,98 @@
+query: |
+  SELECT
+    frame_name AS id,
+    UINT64(0) AS camera_id,
+    vehicle_count,
+    ts as ts
+  FROM MODEL_INFERENCE(
+    vehicle_counter,
+    (
+      SELECT
+        frame_name,
+        ts,
+        JPEG_TO_RGB_960X540(FROM_BASE64(data)) AS image
+      FROM CAMERA_FRAMES_JPEG
+    )
+  )
+  INTO VEHICLE_COUNT_SINK
+
+
+models:
+  - name: vehicle_counter
+    path: /model/vehicle_count_model.onnx
+    input:
+      - name: image
+        type: VARSIZED
+    output:
+      - name: vehicle_count
+        type: INT64
+
+sinks:
+  - name: VEHICLE_COUNT_SINK
+    host: 10.1.1.1:8080
+    parser_config: {}
+    schema:
+      - name: id
+        type: VARSIZED
+      - name: camera_id
+        type: UINT64
+      - name: vehicle_count
+        type: INT64
+      - name: ts
+        type: UINT64
+    type: TCP
+    config:
+      output_format: CSV
+      socket_host: 172.17.0.1
+      socket_port: 9000
+      socket_domain: AF_INET
+      socket_type: SOCK_STREAM
+      connect_timeout_seconds: 10
+
+logical:
+  - name: CAMERA_FRAMES_JPEG
+    schema:
+      - name: frame_name
+        type: VARSIZED
+      - name: width
+        type: UINT64
+      - name: height
+        type: UINT64
+      - name: data
+        type: VARSIZED
+      - name: ts
+        type: UINT64
+
+physical:
+  - logical: CAMERA_FRAMES_JPEG
+    type: TCP
+    host: 10.1.1.3:8080
+    parser_config:
+      type: CSV
+      tuple_delimiter: "\n"
+      field_delimiter: ","
+    source_config:
+      socket_domain: AF_INET
+      socket_type: SOCK_STREAM
+      flush_interval_ms: "200"
+      socket_buffer_size: "1024"
+      connect_timeout_seconds: "10"
+      socket_host: "172.17.0.1"
+      socket_port: "8082"
+
+workers:
+  - host: 10.1.1.1:8080
+    data_address: 10.1.1.1:9090
+    max_operators: 10000
+
+  - host: 10.1.1.2:8080
+    data_address: 10.1.1.2:9090
+    max_operators: 10000
+    downstream:
+      - 10.1.1.1:8080
+
+  - host: 10.1.1.3:8080
+    data_address: 10.1.1.3:9090
+    max_operators: 10000
+    downstream:
+      - 10.1.1.2:8080

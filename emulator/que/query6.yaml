@@ -1,0 +1,64 @@
+query: |
+  SELECT
+      total_injected,
+      total_absorbed,
+      total_injected - total_absorbed AS leakage_gap
+  FROM (
+      SELECT
+          SUM(CASE WHEN node_type = UINT8(1) THEN demand_value ELSE FLOAT32(0.0) END) AS total_injected,
+          SUM(CASE WHEN node_type = UINT8(0) THEN demand_value ELSE FLOAT32(0.0) END) AS total_absorbed
+      FROM waterMeterReadings
+      WHERE demand_value > FLOAT32(0.0)
+      WINDOW TUMBLING(ts, SIZE 30 SEC)
+  )
+  WHERE total_injected != total_absorbed
+  INTO leakage_sink;
+
+sinks:
+  - name: VOID_SINK
+    host: 10.1.1.1:8080
+    parser_config: {}
+    schema:
+      - name: GENERATOR_SOURCE$DOUBLE
+        type: FLOAT64
+    type: Print
+    config:
+      output_format: CSV
+
+logical:
+  - name: GENERATOR_SOURCE
+    schema:
+      - name: DOUBLE
+        type: FLOAT64
+
+physical:
+  - logical: GENERATOR_SOURCE
+    host: 10.1.1.3:8080
+    parser_config:
+      type: CSV
+    type: Generator
+    source_config:
+      generator_rate_type: FIXED
+      generator_rate_config: emit_rate 10
+      stop_generator_when_sequence_finishes: NONE
+      seed: 1
+      generator_schema: |
+        NORMAL_DISTRIBUTION FLOAT64 0 1
+
+workers:
+  - host: 10.1.1.1:8080
+    data: 10.1.1.1:9090
+    max_operators: 10000
+
+  - host: 10.1.1.2:8080
+    data: 10.1.1.2:9090
+    max_operators: 10000
+    downstream:
+      - 10.1.1.1:8080
+
+  - host: 10.1.1.3:8080
+    data: 10.1.1.3:9090
+    max_operators: 10000
+    downstream:
+      - 10.1.1.2:8080
+

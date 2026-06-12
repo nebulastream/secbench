@@ -1,0 +1,10 @@
+setuptools
+urllib3
+docker
+python-iptables
+pytest
+pyyaml
+tcconfig
+backports.ssl-match-hostname
+pexpect
+aiofiles

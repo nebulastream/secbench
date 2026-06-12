@@ -1,0 +1,63 @@
+query:
+  - SELECT * FROM DataGen INTO print
+sinks:
+  - name: print
+    type: Print
+    schema:
+      - name: datagen$timestamp
+        type: UINT64
+      - name: datagen$width
+        type: UINT64
+      - name: datagen$height
+        type: UINT64
+      - name: datagen$data
+        type: FLOAT64
+    host: worker-2:8080
+    config:
+      ingestion: "0"
+      input_format: CSV
+    parser_config: {}
+logical:
+  - name: DataGen
+    schema:
+      - name: timestamp
+        type: UINT64
+      - name: width
+        type: UINT64
+      - name: height
+        type: UINT64
+      - name: data
+        type: FLOAT64
+physical:
+  - logical: DataGen
+    type: TCP
+    host: worker-1:8080
+    parser_config:
+      type: CSV
+    source_config:
+      socket_domain: AF_INET
+      socket_type: SOCK_STREAM
+      tuple_delimiter: |+
+
+      flush_interval_ms: "0"
+      socket_buffer_size: "1024"
+      bytes_sed_for_socket_buffer_size_transfer: "0"
+      connect_timeout_seconds: "10"
+      max_inflight_buffers: "0"
+      socket_host: datagen
+      socket_port: "9999"
+workers:
+  - host: worker-1:8080
+    data: worker-1:9090
+    max_operators: 10000
+    downstream:
+      - worker-2:8080
+  - host: worker-2:8080
+    data: worker-2:9090
+    max_operators: 10000
+  - host: worker-3:8080
+    data: worker-3:9090
+    max_operators: 10000
+    downstream:
+      - worker-2:8080
+

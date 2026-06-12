@@ -1,0 +1,33 @@
+Aggregation aggregation1 = Aggregation.count().as("number_of_reads");
+
+
+
+
+
+Query::from("powerReadings")
+
+//.project(Attribute("house_id"),Attribute("timestamp"),Attribute("value"))
+
+.window(SlidingWindow::of(EventTime(Attribute("timestamp")), Seconds(2), Seconds(1)))
+.byKey(Attribute("timestamp"))
+.apply(Count()->as(Attribute("countt")))
+
+.filter(Attribute("countt") > 0)
+
+.sink(MQTTSinkDescriptor::create("ws://172.17.0.1:19001", "q1-results"));
+
+
+
+
+
+.window(SlidingWindow::of
+       (EventTime(Attribute("ts")), Minutes(1), Seconds(1)))
+       .byKey("house_id")
+       .apply(aggregation1)
+
+-- Pseudocode: find houses with > X% outlier readings (value far from median) in last 24h
+SELECT house_id
+FROM PowerReadings [RANGE 24 HOUR SLIDE 1 SECOND]
+WHERE value > 1.5 * MEDIAN(value)  -- condition defining outlier (example threshold)
+GROUP BY house_id
+HAVING COUNT(*) > 0;

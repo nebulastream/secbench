@@ -1,0 +1,91 @@
+version: "3.8"
+
+services:
+  node1:
+    image: nebulastream/worker:latest
+    container_name: node1
+    hostname: node1
+    privileged: true
+    command:
+      - /bin/sh
+      - -lc
+      - >
+        ${NES_WORKER_BIN:-nes-single-node-worker}
+        --grpc=0.0.0.0:8080
+        --data=10.1.1.1:9090
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    networks:
+      nebulastream:
+        ipv4_address: 10.1.1.1
+
+  node2:
+    image: nebulastream/worker:latest
+    container_name: node2
+    hostname: node2
+    privileged: true
+    command:
+      - /bin/sh
+      - -lc
+      - >
+        ${NES_WORKER_BIN:-nes-single-node-worker}
+        --grpc=0.0.0.0:8080
+        --data=10.1.1.2:9090
+    ports:
+      - "8081:8080"
+      - "9091:9090"
+    depends_on:
+      - node1
+    networks:
+      nebulastream:
+        ipv4_address: 10.1.1.2
+
+  node3:
+    image: nebulastream/worker:latest
+    container_name: node3
+    hostname: node3
+    privileged: true
+    command:
+      - /bin/sh
+      - -lc
+      - >
+        ${NES_WORKER_BIN:-nes-single-node-worker}
+        --grpc=0.0.0.0:8080
+        --data=10.1.1.3:9090
+    ports:
+      - "8082:8080"
+      - "9092:9090"
+    depends_on:
+      - node1
+    networks:
+      nebulastream:
+        ipv4_address: 10.1.1.3
+
+  nebuli:
+    image: nebulastream/nes-cli:latest
+    container_name: nebuli
+    hostname: nebuli
+    privileged: true
+    command:
+      - /bin/sh
+      - -lc
+      - 'trap : TERM INT; while true; do sleep 3600; done'
+    volumes:
+      - ./que:/queries:ro
+    stdin_open: true
+    tty: true
+    depends_on:
+      - node1
+      - node2
+      - node3
+    networks:
+      nebulastream:
+        ipv4_address: 10.1.1.10
+
+networks:
+  nebulastream:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.1.1.0/24

@@ -1,0 +1,23 @@
+Query::from("waterMeterReadings")
+
+//.project(Attribute("house_id"),Attribute("timestamp"),Attribute("value"))
+
+.window(TumblingWindow::of(EventTime(Attribute("timestamp")), Seconds(6)))
+.byKey(Attribute("nodeID"))
+.apply(Sum(Attribute("demand_value"))->as(Attribute("total_consumption")))
+
+//.filter(Attribute("total") > 0)
+
+.sink(MQTTSinkDescriptor::create("ws://192.168.0.1:9001", "q1-results"));
+
+
+
+
+SELECT
+  TO_DATE(dateTime)          AS day,
+  nodeID,
+  SUM(demand_value)          AS total_consumption
+FROM edge_aggregated_stream
+GROUP BY
+  TO_DATE(dateTime),
+  nodeID

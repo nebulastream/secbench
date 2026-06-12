@@ -1,0 +1,28 @@
+Query::from("bid")
+
+.project(Attribute("auctionId"), Attribute("cart"), Attribute("cort"), Attribute("curt"), Attribute("price"), Attribute("timestamp"))
+
+.map(Attribute("priceUSD") = Attribute("price"))
+
+.map(Attribute("priceEUR") = Attribute("price") * 89 / 100)
+
+.map(Attribute("rate") = 0.89)
+
+.map(Attribute("year") = (Attribute("timestamp")/31536000000)+1970)
+
+.map(Attribute("higherThanHundred") = Attribute("price") > 100)
+
+.map(Attribute("lessThanFifty") = Attribute("price") < 50)
+
+.map(Attribute("dummy1") = 1745446252313)
+.map(Attribute("dummy2") = 1745446252313)
+.map(Attribute("dummy3") = 1745446252313)
+.map(Attribute("dummy4") = 1745446252313)
+.map(Attribute("dummy5") = 1745446252313)
+.map(Attribute("dummy6") = 1745446252313)
+.map(Attribute("dummy7") = 1745446252313)
+.map(Attribute("dummy8") = 1745446252313)
+.map(Attribute("dummy9") = 1745446252313)
+.map(Attribute("dummy10") = 1745446252313)
+
+.sink(MQTTSinkDescriptor::create("ws://172.17.0.1:19001", "q1-results"));

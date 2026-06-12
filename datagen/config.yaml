@@ -1,0 +1,54 @@
+data_rate: 1 # tuples per period
+period: 2 # period length in ms
+chunk_size: 10000 # max tuples per send
+
+pattern:
+  - type: uniform
+  - fraction: 0.5
+  - distribution: 0.5
+
+data_source:
+  #type: "csv"
+  #file: "data/smart_water/data.csv"
+  # For image folders use:
+  type: "image_folder"
+  file: "data/traffic_cameras"
+  #encoding: "base64" # or "hex"
+
+duration: 66666
+host: "172.17.0.1"
+ports:
+#  - 8080
+#  - 8081
+  - 8082
+  - 8083
+  - 8084
+
+mqtt:
+  enabled: false
+  host: 172.26.0.1
+  port: 1882
+  topic: "bid"
+
+kafka:
+  enabled: false
+  brokers: "localhost:9092"
+  topic: "bid"
+  flush_timeout_ms: 10000
+
+slow_consumer:
+  enabled: false
+  pending_socket_bytes_limit: 1048576
+  write_duration_warn_ms: 100
+  ack_timeout_ms: 0
+  max_unacked_messages: 0
+  log_interval_ms: 1000
+  disconnect_on_slow: false
+  sequence_header: false
+  nonblocking_send: true
+
+# Zipf options (optional; used only when type=zipfian)
+zipf:
+  period_ms: 1000
+  s: 1.4
+  stochastic: true

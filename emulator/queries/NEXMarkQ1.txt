@@ -1,0 +1,7 @@
+Query::from("bid")
+
+.project(Attribute("auctionId"), Attribute("price"), Attribute("timestamp"))
+
+.map(Attribute("price") = Attribute("price") * 89 / 100)
+
+.sink(MQTTSinkDescriptor::create("ws://172.17.0.1:19001", "q1-results"));

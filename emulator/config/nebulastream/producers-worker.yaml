@@ -1,0 +1,54 @@
+# Logging configuration. Valid options are: LOG_ERROR, LOG_WARNING, LOG_INFO, LOG_DEBUG, LOG_TRACE
+logLevel: LOG_DEBUG
+
+# Hostname of the coordinator, to which the worker should register upon startup.
+# Corresponds to the service name in docker-compose.yml.
+coordinatorHost: 10.1.1.1
+#coordinatorPort: 1200
+#rpcPort: 1216
+#dataPort: 1416
+
+# Hostname under which this worker registers with the coordinator. Corresponds to the service name in docker-compose.yml.
+localWorkerHost: 10.1.1.2
+
+# Physical source configuration
+physicalSources:
+  - logicalSourceName: solarPanels
+    physicalSourceName: solarPanels
+    type: MQTT_SOURCE
+    configuration:
+      url: ws://mosquitto:9001
+      topic: solarPanels
+  - logicalSourceName: windTurbines
+    physicalSourceName: windTurbines
+    type: MQTT_SOURCE
+    configuration:
+      url: ws://mosquitto:9001
+      topic: windTurbines
+  - logicalSourceName: exampleSource
+    physicalSourceName: exampleSource
+    type: MQTT_SOURCE
+    configuration:
+      url: ws://172.18.0.1:9001
+      topic: exampleSource
+  - logicalSourceName: bid
+    physicalSourceName: bid
+    type: MQTT_SOURCE
+    configuration:
+      url: ws://172.18.0.1:9001
+      topic: bid
+
+  - logicalSourceName: auctionTcp #tcpsourcee
+    physicalSourceName: auctionTcp #tcpsourcee
+    type: TCP_SOURCE
+    configuration:
+      socketDomain: AF_INET
+      socketType: SOCK_STREAM
+      socketPort: 4005
+      socketHost: 172.18.0.1
+      inputFormat: CSV
+      socketBufferSize: 20
+      decideMessageSize: USER_SPECIFIED_BUFFER_SIZE
+      flushIntervalMS: 100
+
+workerId: 3

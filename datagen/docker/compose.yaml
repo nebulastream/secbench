@@ -1,0 +1,62 @@
+name: datagen
+
+services:
+  datagen:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: datagen:local
+    container_name: datagen
+    restart: unless-stopped
+    environment:
+      DATAGEN_CONFIG: ${DATAGEN_CONFIG:-/app/config/config.yaml}
+      DATAGEN_BIN: ${DATAGEN_BIN:-/usr/local/bin/datagen}
+    ports:
+      - "9090:9090"
+      - "9091:9091"
+    volumes:
+      - ./config.yaml:/app/config/config.yaml:ro
+      - ./config.mqtt.yaml:/app/config/config.mqtt.yaml:ro
+      - ./config.kafka.yaml:/app/config/config.kafka.yaml:ro
+      - ../data:/app/data:ro
+    depends_on:
+      mosquitto:
+        condition: service_started
+        required: false
+      kafka:
+        condition: service_started
+        required: false
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: datagen-mosquitto
+    profiles:
+      - mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+  kafka:
+    image: apache/kafka:3.9.0
+    container_name: datagen-kafka
+    profiles:
+      - kafka
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,HOST://:29092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,HOST://localhost:29092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0

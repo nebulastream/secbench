@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools", "pyyaml", "docker"]
+build-backend = "setuptools.build_meta"
+
+[project]
+dynamic = ["version"]
+name = "mininet"
+authors = [
+    { name = "Manuel Peuster", email = "manuel.peuster@upb.de" },
+]
+description = "Mininet fork that adds Container support."
+dependencies = [
+    "setuptools",
+    "urllib3",
+    "docker",
+    "python-iptables",
+    "pytest",
+    "pyyaml",
+    "tcconfig",
+    "backports.ssl-match-hostname",
+    "pexpect",
+    "aiofiles",
+]
+license = { text = "BSD" }
+keywords = ["networking", "emulator", "protocol", "Internet", "OpenFlow", "SDN"]
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: System :: Emulators",
+]
+readme = "README.md"
+
+[project.scripts]
+mn = "mininet.mn:main"
+
+[tool.setuptools]
+packages = ["mininet", "mininet.examples", "mininet.fault_controllers"]
+
+[tool.setuptools.dynamic]
+version = { attr = "mininet.net.CONTAINERNET_VERSION" }

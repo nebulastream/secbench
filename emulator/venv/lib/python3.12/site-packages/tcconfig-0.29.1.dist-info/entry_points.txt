@@ -1,0 +1,4 @@
+[console_scripts]
+tcdel = tcconfig.tcdel:main
+tcset = tcconfig.tcset:main
+tcshow = tcconfig.tcshow:main

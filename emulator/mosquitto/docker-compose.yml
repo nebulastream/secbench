@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  mosquitto:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mosquitto
+    ports:
+      - "1882:1882"     # MQTT
+      - "9001:9001"     # WebSocket
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.00'
+          memory: 4G
+    stdin_open: true    # allows docker attach
+    tty: true           # allows bash shell
