@@ -169,6 +169,17 @@ python3 result-tracker.py --network <docker-network>
 
 ## Emulation
 
+For automated NebulaStream deployment from YAML, use
+[`emulator/deploy_nebulastream.py`](emulator/deploy_nebulastream.py).
+It creates workers, direct routed links, resource limits, and the NebulaStream CLI.
+See the [deployment guide](emulator/NEBULASTREAM.md) and
+[executable configuration](emulator/config/nebulastream.yaml).
+
+```bash
+python3 emulator/deploy_nebulastream.py --dry-run
+sudo -E env PATH="$PATH" python3 emulator/deploy_nebulastream.py
+```
+
 The `emulator/` directory contains the Containernet-based environment layer and example deployments. Containernet requires Docker and privileged networking capabilities, so most examples need to be run with root privileges.
 
 Typical execution pattern:
@@ -182,7 +193,19 @@ The paper evaluates SECBench with cloud-native and SEC processing models, includ
 
 ## Benchmark Workflow
 
-A complete benchmark run usually involves separate terminals or orchestration steps:
+For a coordinated NebulaStream TCP benchmark, use
+[`emulator/run_experiment.py`](emulator/run_experiment.py). It starts separately
+resourced datagen and latency-tracker containers on routed links, submits the
+query, releases generation after readiness, and collects results before cleanup.
+See [the experiment guide](emulator/EXPERIMENTS.md) for image builds and the
+[two-worker example](emulator/config/experiment.yaml).
+
+```bash
+python3 emulator/run_experiment.py --dry-run
+sudo env -u PYTHONPATH emulator/venv/bin/python -B emulator/run_experiment.py
+```
+
+Other SUTs and the resource tracker still require separate orchestration steps:
 
 1. Start the latency tracker at the configured SUT sink.
 2. Start the resource tracker for the relevant Docker network or containers.

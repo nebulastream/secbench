@@ -1,0 +1,41 @@
+# All paths are relative to this configuration file.
+deployment:
+  worker_image: secbench/nes-worker:local
+  cli_image: secbench/nes-cli:local
+  queries_dir: ../que
+  model_dir: ../model
+  startup_timeout: 90
+  publish_ports: true
+  install_tools: false # Install missing network utilities before creating links.
+  host_grpc_port_base: 18080
+  worker_args:
+    - --worker.default_query_execution.operator_buffer_size=40960
+    - --worker.number_of_buffers_in_global_buffer_manager=5000
+    - --worker.query_engine.admission_queue_size=100
+
+hardware:
+  - id: node1
+    cpu: 2
+    memory: 2g
+  - id: node2
+    cpu: 1
+    memory: 1g
+  - id: node3
+    cpu: 0.5
+    memory: 1g
+
+network:
+  topology: custom
+  subnet: 10.1.1.0/24         # Stable /32 service addresses on loopback.
+  link_subnet: 10.200.0.0/16  # One /30 allocated per direct link.
+  cli_node: node1
+  links:
+    - link: node1:node2
+      latency: 15           # One-way delay, milliseconds.
+      bandwidth: 10         # Mbps, each direction.
+    - link: node2:node3
+      latency: 15
+      bandwidth: 200
+  cli_link:
+    latency: 0
+    bandwidth: 1000

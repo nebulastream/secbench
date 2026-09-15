@@ -11,8 +11,10 @@ import os
 
 setLogLevel('info')
 
-IMAGE = "nebulastream/worker:tt-tcp-sink" # "nebulastream/worker:distributed-poc-case-when"
-NEBULI_IMAGE = "nebulastream/nes-cli:tt-tcp-sink" # "nebulastream/nes-cli:distributed-poc-case-when"
+#IMAGE = "nebulastream/worker:distributed-poc-case-when"
+#NEBULI_IMAGE = "nebulastream/nes-cli:distributed-poc-case-when"
+IMAGE = "nebulastream/worker:tt-tcp-sink"
+NEBULI_IMAGE = "nebulastream/nes-cli:tt-tcp-sink"
 
 # Adjust this if the worker binary inside the image has a different name.
 WORKER_BIN = os.environ.get("NES_WORKER_BIN", "nes-single-node-worker")
@@ -39,14 +41,14 @@ WORKERS = [
         "ip": "10.1.1.2/24",
         "grpc_port": 8080,
         "connection_port": 9090,
-        "host_port_bindings": {8081: 8080, 9091: 9090},
+        "host_port_bindings": {8080: 8081, 9090: 9091},
     },
     {
         "name": "node3",
         "ip": "10.1.1.3/24",
         "grpc_port": 8080,
         "connection_port": 9090,
-        "host_port_bindings": {8082: 8080, 9092: 9090},
+        "host_port_bindings": {8080: 8082, 9090: 9092},
     },
 ]
 

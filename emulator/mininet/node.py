@@ -786,7 +786,7 @@ class Docker ( Host ):
             memswap_limit=defaults['memswap_limit']
         )
         self.shm_size = defaults['shm_size']
-        self.nano_cpus = defaults['cpus'] * 1_000_000_000 if defaults['cpus'] else None
+        self.nano_cpus = round(defaults['cpus'] * 1_000_000_000) if defaults['cpus'] else None
         self.device_requests = defaults['device_requests']
         self.volumes = defaults['volumes']
         self.tmpfs = defaults['tmpfs']
@@ -979,7 +979,7 @@ class Docker ( Host ):
         # -s: pass $* to shell, and make process easy to find in ps
         # prompt is set to sentinel chr( 127 )
         cmd = [ 'docker', 'exec', '-it',  '%s.%s' % ( self.dnameprefix, self.name ), 'env', 'PS1=' + chr( 127 ),
-                'bash', '--norc', '-is', 'mininet:' + self.name ]
+                'bash', '--norc', '--noediting', '-is', 'mininet:' + self.name ]
         # Spawn a shell subprocess in a pseudo-tty, to disable buffering
         # in the subprocess and insulate it from signals (e.g. SIGINT)
         # received by the parent

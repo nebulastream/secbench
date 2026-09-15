@@ -27,6 +27,7 @@
 #include "Util/Yaml.h"
 
 #include "configLoader.hpp"
+#include "runControl.hpp"
 #include "slowConsumer.hpp"
 
 using asio::ip::tcp;
@@ -1481,13 +1482,19 @@ void run_shared_generator(const std::vector<SerializedRow>& dataset,
 }
 
 int main(int argc, char* argv[]) {
+    if (argc == 2 && std::string(argv[1]) == "--secbench-control-version") {
+        std::cout << "1\n";
+        return EXIT_SUCCESS;
+    }
     std::string config_path = "config.yaml";
     if (argc > 1) {
         config_path = argv[1];
     }
 
     Config cfg;
+    std::optional<secbench::RunControl> control;
     try {
+        control.emplace();
         cfg = load_config(config_path);
     } catch (const std::exception& e) {
         std::cerr << "Config read error: " << e.what() << "\n";
@@ -1576,13 +1583,15 @@ int main(int argc, char* argv[]) {
         acceptor_threads.emplace_back(start_acceptor, cfg.host, port, std::ref(hub), std::ref(running));
     }
 
+    if (!control->wait([&hub] { return hub.client_count() > 0; })) running.store(false, std::memory_order_relaxed);
+    std::cout << "Generator released\n" << std::flush;
     std::thread generator_thread(run_shared_generator,
                                  std::cref(dataset),
                                  std::cref(cfg),
                                  std::ref(hub),
                                  std::ref(running));
 
-    std::this_thread::sleep_for(cfg.duration);
+    control->run_for(cfg.duration, running);
     running.store(false, std::memory_order_relaxed);
     queue_cv.notify_all();
     kafka_queue_cv.notify_all();

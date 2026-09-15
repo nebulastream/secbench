@@ -20,6 +20,7 @@ COPY datagen_batch_new.cpp ./
 COPY datagen_batch_shared.cpp ./
 COPY configLoader.cpp ./
 COPY configLoader.hpp ./
+COPY slowConsumer.hpp runControl.hpp ./
 COPY Util ./Util
 COPY include ./include
 COPY asio-1.30.2 ./asio-1.30.2
@@ -37,6 +38,7 @@ RUN apt-get update \
         librdkafka1 \
         libmosquitto1 \
         libyaml-cpp0.8 \
+        iproute2 net-tools procps iputils-ping coreutils \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

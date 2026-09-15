@@ -1,0 +1,17 @@
+data_rate: 10
+period: 100
+chunk_size: 10
+pattern:
+  - type: uniform
+  - fraction: 0.5
+  - distribution: 0.5
+data_source:
+  type: csv
+  file: data.csv
+duration: 5
+host: 0.0.0.0
+ports: [8082]
+mqtt:
+  enabled: false
+kafka:
+  enabled: false

@@ -64,6 +64,19 @@ Switching between them is only a matter of which executable you run with the sam
 
 Use `datagen` if each client should have its own generator state. Use `datagen_shared` if one common generator should feed all connected clients in parallel with identical content.
 
+### Coordinated Start
+
+`datagen_shared` optionally accepts `SECBENCH_START_FILE`, an absolute path to a
+new file in an existing directory. With this variable set, TCP listeners accept
+clients but generation and the duration timer remain paused until the file exists
+and at least one client has been accepted. The first runner uses one source client.
+SIGINT/SIGTERM requests graceful shutdown in this mode, including while paused.
+Without the variable, startup behavior is unchanged.
+
+`datagen_shared --secbench-control-version` prints `1` for compatible builds.
+Rebuild existing images before using this control protocol. See the
+[experiment runner guide](../emulator/EXPERIMENTS.md).
+
 ### Slow Consumer Detection
 Enable `slow_consumer` to flag clients that are not keeping up with the TCP stream:
 

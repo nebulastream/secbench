@@ -1,0 +1,36 @@
+query: |
+  SELECT id AS id, ts AS ts FROM bench_input INTO bench_output
+logical:
+  - name: bench_input
+    schema:
+      - name: id
+        type: UINT64
+      - name: ts
+        type: UINT64
+physical:
+  - logical: bench_input
+    type: TCP
+    parser_config:
+      type: CSV
+      tuple_delimiter: '\n'
+      field_delimiter: ","
+    source_config:
+      socket_domain: AF_INET
+      socket_type: SOCK_STREAM
+      flush_interval_ms: "100"
+      socket_buffer_size: "1024"
+      connect_timeout_seconds: "10"
+sinks:
+  - name: bench_output
+    type: TCP
+    parser_config: {}
+    schema:
+      - name: id
+        type: UINT64
+      - name: ts
+        type: UINT64
+    config:
+      output_format: CSV
+      socket_domain: AF_INET
+      socket_type: SOCK_STREAM
+      connect_timeout_seconds: "10"

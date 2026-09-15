@@ -1,0 +1,32 @@
+# 64 workers in a routed tree. Unlike nes-scaled.py, intermediates are workers,
+# not switches; forwarding consumes resources on those workers.
+deployment:
+  worker_image: nebulastream/worker:tt-tcp-sink
+  cli_image: nebulastream/nes-cli:tt-tcp-sink
+  queries_dir: ../que
+  model_dir: ../model
+  startup_timeout: 120
+  install_tools: true # For repeated large runs, bake network tools into the images.
+  worker_args:
+    - --worker.default_query_execution.operator_buffer_size=40960
+    - --worker.number_of_buffers_in_global_buffer_manager=5000
+    - --worker.query_engine.admission_queue_size=100
+
+hardware:
+  - id: node
+    count: 64
+    cpu: 0.5
+    memory: 1g
+
+network:
+  topology: tree
+  branching_factor: 4
+  subnet: 10.1.1.0/24
+  link_subnet: 10.200.0.0/16
+  default_link:
+    latency: 3
+    bandwidth: 100
+  cli_node: node1
+  cli_link:
+    latency: 1
+    bandwidth: 1000

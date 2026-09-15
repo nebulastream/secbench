@@ -1,0 +1,50 @@
+# Paths are relative to this file. Build the four images before running.
+deployment:
+  worker_image: secbench/nes-worker:local
+  cli_image: secbench/nes-cli:local
+  install_tools: false
+  publish_ports: false
+  startup_timeout: 90
+
+hardware:
+  - id: node1
+    cpu: 1
+    memory: 1g
+  - id: node2
+    cpu: 1
+    memory: 1g
+
+network:
+  topology: line
+  default_link:
+    latency: 5
+    bandwidth: 100
+
+experiment:
+  duration_seconds: 30
+  startup_timeout: 90
+  drain_timeout: 60
+  shutdown_timeout: 15
+  datagen:
+    image: secbench/datagen:local
+    config: ../examples/experiment/datagen.yaml
+    dataset: ../examples/experiment/data.csv
+    attach_to: node1
+    cpu: 1
+    memory: 512m
+    port: 8082
+    link:
+      latency: 0
+      bandwidth: 1000
+  tracker:
+    image: secbench/tracker:local
+    config: ../../result-tracker/config.yaml
+    attach_to: node2
+    cpu: 1
+    memory: 512m
+    port: 9000
+    link:
+      latency: 0
+      bandwidth: 1000
+  query:
+    template: ../examples/experiment/query.yaml
