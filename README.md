@@ -1,5 +1,3 @@
-## This page is going to be updated
-
 # SECBench
 
 SECBench is a benchmarking framework for evaluating stream processing systems in the sensor-edge-cloud (SEC) continuum. It combines configurable SEC environment emulation, workload generation, system-under-test deployment, and performance tracking so that cloud-native and SEC processing models can be compared under reproducible hardware and network conditions.
@@ -197,13 +195,74 @@ For a coordinated NebulaStream TCP benchmark, use
 [`emulator/run_experiment.py`](emulator/run_experiment.py). It starts separately
 resourced datagen and latency-tracker containers on routed links, submits the
 query, releases generation after readiness, and collects results before cleanup.
-See [the experiment guide](emulator/EXPERIMENTS.md) for image builds and the
-[two-worker example](emulator/config/experiment.yaml).
+The commands below are intended to be run from the repository root on a Linux
+host. Install Docker and the bare-metal Containernet host dependencies first;
+the emulator needs `mnexec`, `ip`, `tc`, and privileged network-namespace access.
+See the [Containernet installation instructions](emulator/README.md#installation).
+
+Create the Python environment once:
 
 ```bash
-python3 emulator/run_experiment.py --dry-run
-sudo env -u PYTHONPATH emulator/venv/bin/python -B emulator/run_experiment.py
+python3 -m venv emulator/venv
+emulator/venv/bin/pip install ./emulator
 ```
+
+Build the four experiment images once. The first two builds use the public
+`nebulastream/worker:tt-tcp-sink` and
+`nebulastream/nes-cli:tt-tcp-sink` images from Docker Hub as their bases and add
+the network tools required by Containernet:
+
+```bash
+docker pull nebulastream/worker:tt-tcp-sink
+docker pull nebulastream/nes-cli:tt-tcp-sink
+
+docker build -f emulator/docker/nes-tools.Dockerfile \
+  --build-arg BASE_IMAGE=nebulastream/worker:tt-tcp-sink \
+  -t secbench/nes-worker:local emulator/docker
+docker build -f emulator/docker/nes-tools.Dockerfile \
+  --build-arg BASE_IMAGE=nebulastream/nes-cli:tt-tcp-sink \
+  -t secbench/nes-cli:local emulator/docker
+docker build -f datagen/docker/Dockerfile \
+  -t secbench/datagen:local datagen
+docker build -f emulator/docker/tracker.Dockerfile \
+  -t secbench/tracker:local .
+```
+
+These builds require Internet access, but normal benchmark runs use the resulting
+local images and do not reinstall network tools. Confirm that all images exist:
+
+```bash
+docker image inspect \
+  secbench/nes-worker:local \
+  secbench/nes-cli:local \
+  secbench/datagen:local \
+  secbench/tracker:local >/dev/null
+```
+
+Validate the supplied two-worker example without root or Docker changes:
+
+```bash
+env -u PYTHONPATH emulator/venv/bin/python -B \
+  emulator/run_experiment.py --dry-run
+```
+
+Then run the full experiment. Do not start `deploy_nebulastream.py` separately;
+the experiment runner creates and removes its own environment:
+
+```bash
+sudo env -u PYTHONPATH emulator/venv/bin/python -B \
+  emulator/run_experiment.py --config emulator/config/experiment.yaml
+```
+
+The default example starts datagen, two routed NebulaStream workers, the query,
+and the latency tracker. Run artifacts are written beneath `emulator/runs/`; check
+`summary.json`, `tracker/latency_output.log`, and
+`tracker/consumed_tuples.txt`. Existing `mn.*` containers or occupied configured
+ports cause a preflight failure and must be handled before retrying.
+
+See the [full experiment guide](emulator/EXPERIMENTS.md) for configuration fields,
+lifecycle details, troubleshooting, and the
+[two-worker configuration](emulator/config/experiment.yaml).
 
 Other SUTs and the resource tracker still require separate orchestration steps:
 

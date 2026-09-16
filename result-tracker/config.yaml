@@ -1,0 +1,18 @@
+connection:
+  type: tcp
+  mode: server
+  host: 0.0.0.0
+#  host: 172.17.0.1
+  port: 9000
+#  port: 8082
+  backlog: 64
+  read_buffer_bytes: 4096
+
+processing:
+  sample: 100
+  latency_worker_threads: 16
+  spool_file: timestamped_tuples.log
+  latency_output_file: latency_output.log
+  print_to_terminal: true
+  print_only_latency: true
+  print_consumed_tuples: true
