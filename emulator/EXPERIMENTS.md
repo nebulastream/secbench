@@ -4,7 +4,7 @@
 latency tracker. It reuses the environment launcher; the environment-only command
 continues to work unchanged. It does not attach to an already running deployment.
 
-The included five-second pass-through example constructs:
+The included 30-second pass-through example constructs:
 
 ```text
 datagen -- node1 -- node2 -- tracker
@@ -18,11 +18,40 @@ zero added delay and 1 Gbps bandwidth. Datagen and tracker each have their own C
 and memory limits, separate from workers. Their attachment delay contributes to
 end-to-end latency. No benchmark ports are published through Docker's bridge.
 
+## Prepare The Host
+
+Run the automated setup from the repository root:
+
+```bash
+sudo ./scripts/setup-emulator-host.sh
+./scripts/setup-emulator-python.sh
+./scripts/build-benchmark-images.sh
+```
+
+The host script supports Ubuntu and Linux Mint 22.x directly and treats other
+apt-based Debian-family systems as best effort. It intentionally bypasses the
+legacy Mininet `install.sh -fnv` path: this experiment uses direct routed links,
+not OpenFlow or Open vSwitch. Docker must be installed and running before setup;
+the script does not add package repositories or alter Docker configuration.
+
+On Linux Mint, Docker's Ubuntu repository must use the base Ubuntu codename from
+`UBUNTU_CODENAME` (`noble` for Mint 22.x), not the Mint codename. The setup reads
+`/etc/os-release` and never changes system distribution metadata.
+
+Check an existing host without installing packages:
+
+```bash
+./scripts/setup-emulator-host.sh --check
+```
+
 ## Build Images Once
 
 Run from the repository root. The two base NebulaStream images must be available
-locally. Building images requires network access to working package repositories;
-the runner itself does not pull or build images.
+locally. `scripts/build-benchmark-images.sh` pulls them and builds all four images.
+Building requires network access to working package repositories; the experiment
+runner itself does not pull or build images.
+
+Equivalent manual commands are:
 
 ```bash
 docker build -f datagen/docker/Dockerfile -t secbench/datagen:local datagen

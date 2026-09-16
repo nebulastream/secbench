@@ -196,48 +196,44 @@ For a coordinated NebulaStream TCP benchmark, use
 resourced datagen and latency-tracker containers on routed links, submits the
 query, releases generation after readiness, and collects results before cleanup.
 The commands below are intended to be run from the repository root on a Linux
-host. Install Docker and the bare-metal Containernet host dependencies first;
-the emulator needs `mnexec`, `ip`, `tc`, and privileged network-namespace access.
-See the [Containernet installation instructions](emulator/README.md#installation).
+host. Install [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
+first and ensure its daemon is running. Docker's Ubuntu
+repository must use the base Ubuntu codename on derivatives: Linux Mint 22.x uses
+`noble`, not its Mint codename. Do not modify `/etc/lsb-release` to make Mint
+pretend to be Ubuntu.
 
-Create the Python environment once:
-
-```bash
-python3 -m venv emulator/venv
-emulator/venv/bin/pip install ./emulator
-```
-
-Build the four experiment images once. The first two builds use the public
-`nebulastream/worker:tt-tcp-sink` and
-`nebulastream/nes-cli:tt-tcp-sink` images from Docker Hub as their bases and add
-the network tools required by Containernet:
+The SECBench setup does not use Containernet's legacy `install.sh -fnv` path. That
+installer rejects Linux Mint and installs OpenFlow/Open vSwitch components that
+the direct routed topology does not use. Instead, run the repository-owned setup:
 
 ```bash
-docker pull nebulastream/worker:tt-tcp-sink
-docker pull nebulastream/nes-cli:tt-tcp-sink
-
-docker build -f emulator/docker/nes-tools.Dockerfile \
-  --build-arg BASE_IMAGE=nebulastream/worker:tt-tcp-sink \
-  -t secbench/nes-worker:local emulator/docker
-docker build -f emulator/docker/nes-tools.Dockerfile \
-  --build-arg BASE_IMAGE=nebulastream/nes-cli:tt-tcp-sink \
-  -t secbench/nes-cli:local emulator/docker
-docker build -f datagen/docker/Dockerfile \
-  -t secbench/datagen:local datagen
-docker build -f emulator/docker/tracker.Dockerfile \
-  -t secbench/tracker:local .
+sudo ./scripts/setup-emulator-host.sh
+./scripts/setup-emulator-python.sh
+./scripts/build-benchmark-images.sh
 ```
 
-These builds require Internet access, but normal benchmark runs use the resulting
-local images and do not reinstall network tools. Confirm that all images exist:
+The host setup installs only the required apt packages and builds `mnexec`. It
+recognizes Ubuntu and Linux Mint through `/etc/os-release`; Debian and other
+apt-based Debian/Ubuntu derivatives are best effort. Fedora/RHEL are not yet
+supported by the setup script, and macOS/Windows users need a Linux VM. Docker is
+checked but deliberately not installed or reconfigured by the script.
 
-```bash
-docker image inspect \
-  secbench/nes-worker:local \
-  secbench/nes-cli:local \
-  secbench/datagen:local \
-  secbench/tracker:local >/dev/null
-```
+The Python setup creates `emulator/venv`, installs the bundled Containernet
+package and dependencies, and performs a dry-run validation. Run it as the normal
+user, not with `sudo`. The image setup pulls the public NebulaStream worker and CLI
+bases from Docker Hub and builds these four local images:
+
+- `secbench/nes-worker:local`
+- `secbench/nes-cli:local`
+- `secbench/datagen:local`
+- `secbench/tracker:local`
+
+Setup can be rerun safely after dependency or image changes. Check host readiness
+without installing anything with `./scripts/setup-emulator-host.sh --check`. Use
+`./scripts/build-benchmark-images.sh --skip-pull` to rebuild while offline when
+both NebulaStream base images already exist locally. See the
+[experiment guide](emulator/EXPERIMENTS.md) for equivalent manual image commands
+and base-image overrides.
 
 Validate the supplied two-worker example without root or Docker changes:
 
